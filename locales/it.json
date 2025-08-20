@@ -1,0 +1,6 @@
+{
+    "notify": {
+        "enter": "Sei entrato in una zona speciale",
+        "exit": "Sei uscito dalla zona speciale"
+    }
+}
