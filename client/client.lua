@@ -26,9 +26,7 @@ end
 
 local function checkStatus(self)
     if self.speedzone and cache.vehicle then
-        if GetVehicleEstimatedMaxSpeed(cache.vehicle) ~= self.speedlimit then
-            SetVehicleMaxSpeed(cache.vehicle, self.speedlimit)
-        end
+        SetVehicleMaxSpeed(cache.vehicle, self.speedlimit)
     end
 
     if self.safezone and not GetPlayerInvincible(cache.playerId) then
