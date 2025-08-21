@@ -1,53 +1,79 @@
-local zones = lib.load("config.config")
+local zones = lib.load('config.config')
+
+local function applyEffects(self)
+    client.Notify(locale('notify.enter'), 'info')
+
+    if self.speedzone then
+        SetVehicleMaxSpeed(cache.vehicle, self.speedlimit)
+    end
+
+    if self.safezone then
+        SetPlayerInvincible(cache.playerId, true)
+    end
+end
+
+local function removeEffects(self)
+    client.Notify(locale('notify.exit'), 'info')
+
+    if self.speedzone then
+        SetVehicleMaxSpeed(cache.vehicle, 0.0)
+    end
+
+    if self.safezone then
+        SetPlayerInvincible(cache.playerId, false)
+    end
+end
+
+local function checkStatus(self)
+    if self.speedzone and cache.vehicle then
+        if GetVehicleEstimatedMaxSpeed(cache.vehicle) ~= self.speedlimit then
+            SetVehicleMaxSpeed(cache.vehicle, self.speedlimit)
+        end
+    end
+
+    if self.safezone and not GetPlayerInvincible(cache.playerId) then
+        SetPlayerInvincible(cache.playerId, true)
+    end
+end
 
 local function CreateZone(name, data)
-    local zone = nil
-    if data.zoneShape == "poly" then
-        zone = lib.zones.poly({
+    if data.zoneShape == 'poly' then
+        lib.zones.poly({
             points = data.points,
             thickness = data.height,
             debug = data.debug,
+            speedzone = data.speedZone,
+            speedlimit = data.speedLimit,
+            safezone = data.safeZone,
+            onEnter = applyEffects,
+            onExit = removeEffects,
+            inside = checkStatus,
         })
-    elseif data.zoneShape == "box" then
-        zone = lib.zones.box({
+    elseif data.zoneShape == 'box' then
+        lib.zones.box({
             coords = vec3(data.coords.x, data.coords.y, data.coords.z),
             size = data.size,
             rotation = data.coords.w,
             debug = data.debug,
+            speedzone = data.speedZone,
+            speedlimit = data.speedLimit,
+            safezone = data.safeZone,
+            onEnter = applyEffects,
+            onExit = removeEffects,
+            inside = checkStatus,
         })
-    elseif data.zoneShape == "sphere" then
-        zone = lib.zones.sphere({
+    elseif data.zoneShape == 'sphere' then
+        lib.zones.sphere({
             coords = vec3(data.coords.x, data.coords.y, data.coords.z),
             radius = data.radius,
             debug = data.debug,
+            speedzone = data.speedZone,
+            speedlimit = data.speedLimit,
+            safezone = data.safeZone,
+            onEnter = applyEffects,
+            onExit = removeEffects,
+            inside = checkStatus,
         })
-    end
-
-    if not zone then
-        print(("^1[ERROR: mnr_zones] Error creating zone: %s^0"):format(name))
-        return
-    end
-
-    local function ToggleEffects(status)
-        client.Notify(status and locale("notify.enter") or locale("notify.exit"), "info")
-
-        local playerPed = cache.ped or PlayerPedId()
-        if data.speedZone then
-            local speedLimit = data.speedLimit or 0.0
-            SetVehicleMaxSpeed(GetVehiclePedIsIn(playerPed, false), status and speedLimit or 0.0)
-        end
-
-        if data.safeZone then
-            SetEntityInvincible(playerPed, status)
-        end
-    end
-
-    function zone:onEnter()
-        ToggleEffects(true)
-    end
-
-    function zone:onExit()
-        ToggleEffects(false)
     end
 end
 
